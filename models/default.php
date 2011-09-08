@@ -14,8 +14,8 @@ class ComFlickrModelDefault extends KModelAbstract
 			->insert('format'	,'word','json')
 			->insert('nojsoncallback', 'int', 1)
 			->insert('api_key'	, 'word', self::$arguments['api_key']);
-			
-		$this->getMethods();
+		
+			$this->getMethods();
 	}
 	
 	public function method($method_name)
@@ -75,12 +75,25 @@ class ComFlickrModelDefault extends KModelAbstract
 	
 	private function curlRequest($url)
 	{
-		$ch = curl_init($url);
-		curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
-        $return = curl_exec($ch);;
-        curl_close($ch);
+		$request_key = md5($url);
+		
+		if (!isset(self::$cache[$request_key]))
+		{
+			$ch = curl_init($url);
+			curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+	        $return = curl_exec($ch);
+	        curl_close($ch);
+	        
+	        self::$cache[$request_key] = $return;
+		}
+		else {
+			$return = self::$cache[$request_key];
+		}
         
-        if( KRequest::get('format', 'string','html') == 'html' ) $return = json_decode($return);
+        if ( KRequest::get('format', 'string','html') == 'html' )
+        {
+        	$return = json_decode($return);
+        }
         
         return $return;
 	}
@@ -95,7 +108,7 @@ class ComFlickrModelDefault extends KModelAbstract
     		{
     			$arguments[] = $key.'='.$val;
     		}
-    		$url .= '?'.implode('&',$arguments);
+    		if (!empty($arguments)) $url .= '?'.implode('&',$arguments);
     		
     		$this->_response = $this->curlRequest($url);
     	}
@@ -117,7 +130,8 @@ class ComFlickrModelDefault extends KModelAbstract
      */
     public function __call($method, $args)
     {
-    	$scope = KInflector::getPart(get_class($this), -1);
+    	$scope = $this->getIdentifier()->name;
+    	
         if (array_search($method, self::$methods[$scope]) !== false)
         {
         	$this->method($scope.'.'.$method);
@@ -127,6 +141,17 @@ class ComFlickrModelDefault extends KModelAbstract
         	if ($response->stat != 'ok')
         	{
         		throw new Exception($response->message,$response->code);
+        	}
+        	
+        	//filter response by scope
+        	switch ($scope)
+        	{
+        		case 'people':
+        			return $response->person;
+        			break;
+        		case 'tags':
+        			return $response->hottags->tag;
+        			break;
         	}
         	
             return $response;
