@@ -6,6 +6,7 @@
 	<li>
 		<?php echo $photoset->title->_content; ?>
 		<p><?php echo $photoset->description->_content; ?></p>
+		<?= @helper('image.photo', $photoset); ?>
 	</li>
 <?php endforeach; ?>
 </ul>

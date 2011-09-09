@@ -20,7 +20,7 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 	 * 
 	 * @var array
 	 */
-	private static $_config = array('api_key' => '');
+	private static $_config = array('api_key' => '25e29fe5c8c606b38ef3fe473dfada36');
 	
 	/**
 	 * Constructor of class
@@ -143,6 +143,8 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
         		case 'photosets':
         			$this->_total = $response->photosets['total'];
         			return $response->photosets;
+        		case 'photos':
+        			return $response->photo;
         			break;
         	}
         	
