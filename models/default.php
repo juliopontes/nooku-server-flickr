@@ -1,10 +1,32 @@
 <?php
-class ComFlickrModelDefault extends KModelAbstract
+class ComFlickrModelDefault extends ComFlickrModelHttp
 {
-	static $methods = array();
-	static $arguments = array('api_key' => '25e29fe5c8c606b38ef3fe473dfada36');
-	static $cache = array();
+	/**
+	 * URL to rest service
+	 * 
+	 * @var string url
+	 */
+	protected $_url = 'http://api.flickr.com/services/rest/';
 	
+	/**
+	 * Array of methods list from flickr
+	 * 
+	 * @var array methods
+	 */
+	private static $_flickr_methods = array();
+	
+	/**
+	 * Default config
+	 * 
+	 * @var array
+	 */
+	private static $_config = array('api_key' => '');
+	
+	/**
+	 * Constructor of class
+	 * 
+	 * @param KConfig $config
+	 */
 	public function __construct(KConfig $config)
 	{
 		parent::__construct($config);
@@ -13,11 +35,45 @@ class ComFlickrModelDefault extends KModelAbstract
 			->insert('method'	,'word')
 			->insert('format'	,'word','json')
 			->insert('nojsoncallback', 'int', 1)
-			->insert('api_key'	, 'word', self::$arguments['api_key']);
+			->insert('api_key'	, 'word', self::$_config['api_key']);
 		
 			$this->getMethods();
 	}
 	
+	/**
+	 * Array of config
+	 * 
+	 * @param mixed $parameter string config or array config
+	 */
+	public static function getConfig($parameter=null)
+	{
+		if (isset(self::$_config[$parameter]) && !is_null($parameter))
+		{
+			return self::$_config[$parameter];
+		}
+		
+		return self::$_config;
+	}
+	
+	/**
+	 * Set a parameter
+	 * 
+	 * @param mixed $parameter string config or array config
+	 */
+	public static function setConfig($property,$value=null)
+	{
+		if (isset(self::$_config[$property]) && !is_null($property))
+		{
+			self::$_config[$property] = $value;
+		}
+	}
+	
+	/**
+	 * Set a method request from flickr api
+	 * 
+	 * @param string $method_name
+	 * @return self instance
+	 */
 	public function method($method_name)
 	{
 		$method_name = 'flickr.'.str_replace('flickr.','',$method_name);
@@ -27,94 +83,26 @@ class ComFlickrModelDefault extends KModelAbstract
 	}
 	
 	/**
-     * Set the model state properties
-     *
-     * This function overloads the KObject::set() function and only acts on state properties.
-     *
-     * @param   string|array|object	The name of the property, an associative array or an object
-     * @param   mixed  				The value of the property
-     * @return	KModelAbstract
-     */
-    public function set( $property, $value = null )
-    {
-    	if(is_object($property)) {
-    		$property = (array) KConfig::toData($property);
-    	}
-
-    	if(is_array($property)) {
-        	$this->_state->setData($property);
-        } else {
-        	if ( !isset($this->_state->$property) )
-        	{
-        		$this->_state->insert($property,'word', $value);
-        	}
-        	else {
-        		$this->_state->$property = $value;
-        	}
-        }
-
-        return $this;
-    }
-	
+	 * List All Flickr Methods
+	 * 
+	 * @return array list of flickr methods
+	 */
 	public function getMethods()
 	{
-		$response = $this->curlRequest('http://api.flickr.com/services/rest/?method=flickr.reflection.getMethods&format=json&nojsoncallback=1&api_key='.self::$arguments['api_key']);
-	
-		if (empty(self::$methods))
+		if (empty(self::$_flickr_methods) && !empty(self::$_config['api_key']))
 		{
+			$response = $this->request((string)$this->_url.'?method=flickr.reflection.getMethods&format=json&nojsoncallback=1&api_key='.self::$_config['api_key']);
+	
 			foreach($response->methods->method as $method)
 			{
 				list($flickr,$scope,$method) = explode('.',$method->_content);
-				if( !isset(self::$methods[$scope]) ) self::$methods[$scope] = array();
-				array_push(self::$methods[$scope], $method);
+				if( !isset(self::$_flickr_methods[$scope]) ) self::$_flickr_methods[$scope] = array();
+				array_push(self::$_flickr_methods[$scope], $method);
 			}
 		}
 	
-		return self::$methods;
+		return self::$_flickr_methods;
 	}
-	
-	private function curlRequest($url)
-	{
-		$request_key = md5($url);
-		
-		if (!isset(self::$cache[$request_key]))
-		{
-			$ch = curl_init($url);
-			curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
-	        $return = curl_exec($ch);
-	        curl_close($ch);
-	        
-	        self::$cache[$request_key] = $return;
-		}
-		else {
-			$return = self::$cache[$request_key];
-		}
-        
-        if ( KRequest::get('format', 'string','html') == 'html' )
-        {
-        	$return = json_decode($return);
-        }
-        
-        return $return;
-	}
-	
-	public function getResponse()
-    {
-    	if (empty($this->_response))
-    	{
-    		$url = 'http://api.flickr.com/services/rest/';
-    		$arguments = array();
-    		foreach ($this->_state->getData() as $key => $val)
-    		{
-    			$arguments[] = $key.'='.$val;
-    		}
-    		if (!empty($arguments)) $url .= '?'.implode('&',$arguments);
-    		
-    		$this->_response = $this->curlRequest($url);
-    	}
-    	
-        return $this->_response;
-    }
     
 	/**
      * Supports a simple form Fluent Interfaces. Allows you to set states by
@@ -132,7 +120,7 @@ class ComFlickrModelDefault extends KModelAbstract
     {
     	$scope = $this->getIdentifier()->name;
     	
-        if (array_search($method, self::$methods[$scope]) !== false)
+        if (array_search($method, self::$_flickr_methods[$scope]) !== false)
         {
         	$this->method($scope.'.'.$method);
         	
@@ -151,6 +139,10 @@ class ComFlickrModelDefault extends KModelAbstract
         			break;
         		case 'tags':
         			return $response->hottags->tag;
+        			break;
+        		case 'photosets':
+        			$this->_total = $response->photosets['total'];
+        			return $response->photosets;
         			break;
         	}
         	
