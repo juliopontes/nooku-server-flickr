@@ -1,22 +1,22 @@
 <?php
 class ComFlickrViewPhotoHtml extends ComDefaultViewHtml
 {
-	protected $_auto_assign = false;
-	
 	protected function _initialize(KConfig $config)
     {
         $config->append(array(
-            'layout' => 'info'
+			'auto_assign' => false,
+        	'layout' => 'info'
         ));
         
         parent::_initialize($config);
     }
     
-	public function display()
-	{
-		$name  = $this->getName();
-		$this->assign($name, KFactory::tmp('admin::com.flickr.model.photos')->set('photo_id',KRequest::get('id','string'))->getInfo());
-		
-		return parent::display();
-	}
+    public function display()
+    {
+    	die('not working');
+    	
+    	return parent::display();
+    }
+    
+    //$this->assign($this->getName(), KFactory::tmp('admin::com.flickr.model.photos')->set('photo_id',KRequest::get('get.id','string'))->getInfo());
 }

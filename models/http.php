@@ -118,7 +118,7 @@ abstract class ComFlickrModelHttp extends KModelAbstract
     	if (is_array($property)) {
         	$this->_state->setData($property);
         } else {
-        	$this->_state->insert($property,'word',$value);
+        	$this->_state->insert($property,'string',$value);
         }
 
         return $this;
