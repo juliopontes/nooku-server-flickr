@@ -6,10 +6,6 @@ class ComFlickrTemplateHelperImage extends KTemplateHelperAbstract
 	public function photo( $photo,$size=null )
 	{
 		$config = new KConfig($photo);
-		$config->append(array(
-			'size'		=> '',
-			'alt'		=> ''
-		));
 		
 		if (is_null($size))
 		{
@@ -31,6 +27,6 @@ class ComFlickrTemplateHelperImage extends KTemplateHelperAbstract
 			$src = preg_replace($regexVar, $config->get($cleanVar), $src,1);
 		}
 
-		return '<img src="'.$src.'" alt="'.$config->title.'" />';
+		return '<img src="'.$src.'" alt="'.$config->title->_content.'" />';
 	}
 }

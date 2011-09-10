@@ -30,14 +30,14 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 	public function __construct(KConfig $config)
 	{
 		parent::__construct($config);
-
+		
 		$this->_state
-			->insert('method'	,'word')
+			->insert('method'	,'word', '')
 			->insert('format'	,'word','json')
 			->insert('nojsoncallback', 'int', 1)
 			->insert('api_key'	, 'word', self::$_config['api_key']);
 		
-			$this->getMethods();
+		$this->getMethods();
 	}
 	
 	/**
@@ -91,7 +91,13 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 	{
 		if (empty(self::$_flickr_methods) && !empty(self::$_config['api_key']))
 		{
-			$response = $this->request((string)$this->_url.'?method=flickr.reflection.getMethods&format=json&nojsoncallback=1&api_key='.self::$_config['api_key']);
+			$this->_url->setQuery(array(
+				'method' => 'flickr.reflection.getMethods',
+				'format' => 'json',
+				'nojsoncallback' => 1,
+				'api_key' => self::$_config['api_key']
+			));
+			$response = $this->request($this->_url);
 	
 			foreach($response->methods->method as $method)
 			{
@@ -120,11 +126,9 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
     {
     	$scope = $this->getIdentifier()->name;
     	
-        if (array_search($method, self::$_flickr_methods[$scope]) !== false)
+        if (array_key_exists($scope, self::$_flickr_methods) !== false && array_search($method, self::$_flickr_methods[$scope]) !== false)
         {
-        	$this->method($scope.'.'.$method);
-        	
-        	$response = $this->getResponse();
+        	$response = $this->method($scope.'.'.$method)->getResponse();
         	
         	if ($response->stat != 'ok')
         	{
@@ -141,7 +145,6 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
         			return $response->hottags->tag;
         			break;
         		case 'photosets':
-        			$this->_total = $response->photosets['total'];
         			return $response->photosets;
         		case 'photos':
         			return $response->photo;

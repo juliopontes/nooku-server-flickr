@@ -28,7 +28,7 @@ abstract class ComFlickrModelHttp extends KModelAbstract
 	 * 
 	 * @var boolean true if need to cache results
 	 */
-	protected $_cache_request = false;
+	protected $_cache_request = true;
 	
 	/**
 	 * Cached data
@@ -185,7 +185,7 @@ abstract class ComFlickrModelHttp extends KModelAbstract
     /**
      * Request a single URL or queue request
      * 
-     * @param string $url 
+     * @param mixed $url string or KHttpUrl object 
      */
 	protected function request($url=null)
 	{
@@ -196,11 +196,13 @@ abstract class ComFlickrModelHttp extends KModelAbstract
 			$return = array();
 			foreach($this->_requests as $request_url)
 			{
-				array_push($return, $this->_requestCurl((string)$request_url));
+				if (!($request_url instanceof KHttpUrl)) $request_url = KFactory::get('lib.koowa.http.url', array('url' => $request_url));
+				array_push($return, $this->_requestCurl($request_url));
 			}
 		}
 		else {
-			$return = $this->_requestCurl((string)$url);
+			if (!($url instanceof KHttpUrl)) $url = KFactory::get('lib.koowa.http.url', array('url' => $url));
+			$return = $this->_requestCurl($url);
 		}
         
         return $return;
@@ -208,34 +210,37 @@ abstract class ComFlickrModelHttp extends KModelAbstract
 	
 	private function _requestCurl($url)
 	{
-		$request_key = md5($url);
+		$request_key = md5((string)$url);
 		
 		if ($this->_cache_request)
 		{
-			if (!isset(self::$cache[$request_key]))
+			if (!isset(self::$_cache[$request_key]))
 			{
-				$ch = curl_init($url);
-				curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
-		        $return = curl_exec($ch);
-		        curl_close($ch);
-		        
-		        self::$cache[$request_key] = $return;
+				$return = $this->_callCurl($url);
+		        self::$_cache[$request_key] = $return;
 			}
 			else {
-				$return = self::$cache[$request_key];
+				$return = self::$_cache[$request_key];
 			}
 		}
 		else {
-			$ch = curl_init($url);
-			curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
-	        $return = curl_exec($ch);
-	        curl_close($ch);
+			$return = $this->_callCurl($url);
 		}
         
         if ( KRequest::get('format', 'string','html') == 'html' )
         {
         	$return = json_decode($return);
         }
+        
+        return $return;
+	}
+	
+	private function _callCurl($url)
+	{
+		$ch = curl_init((string)$url);
+		curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+        $return = curl_exec($ch);
+        curl_close($ch);
         
         return $return;
 	}
@@ -247,15 +252,7 @@ abstract class ComFlickrModelHttp extends KModelAbstract
      */
 	public function getResponse()
     {
-    	$url = $this->_url;
-    	$arguments = array();
-    	foreach ($this->_state->getData() as $key => $val)
-    	{
-    		$arguments[] = $key.'='.$val;
-    	}
-    	if (!empty($arguments)) $url .= '?'.implode('&',$arguments);
-    	
-    	return $this->request($url);
+    	return $this->request($this->_url->setQuery($this->_state->getData()));
     }
     
 	/**
