@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<install type="component" version="1.5.0">
+	<name>Flickr</name>
+	<author>Julio Pontes</author>
+	<creationDate>September 2011</creationDate>
+	<copyright></copyright>
+	<license>http://www.gnu.org/licenses/gpl.html GNU/GPL v3</license>
+	<authorEmail>juliopfneto@gmail.com</authorEmail>
+	<authorUrl>www.nooku.org</authorUrl>
+	<version>0.7.0</version>
+	<description>DESCFLICKR</description>
+	<administration>
+		<submenu>
+			<menu view="dashboard">Dashboard</menu>
+		</submenu>
+	</administration>
+</install>
