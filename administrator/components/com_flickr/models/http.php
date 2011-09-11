@@ -173,6 +173,7 @@ abstract class ComFlickrModelHttp extends KModelAbstract
     public function parse()
     {
     	$context = $this->getCommandContext();
+    	
     	$context->data = $this->_response;
     	
     	$result = $this->getCommandChain()->run(ComFlickrModelHttpFilter::MODE_READ, $context);
@@ -273,19 +274,23 @@ abstract class ComFlickrModelHttp extends KModelAbstract
 				$return = $this->_callCurl($url);
 	        	$this->_cache->store(json_encode($return),$request_key,$cache_group);
 			}
+			else{
+				echo 'cached data';
+				exit;
+			}
 		}
 		else {
 			$return = $this->_callCurl($url);
 		}
         
-        if ( KRequest::format() == 'html' && !is_object($return) )
+        if ( KRequest::get('get.format', 'cmd', 'html') == 'html' && !is_object($return) )
         {
         	$return = json_decode($return);
         }
         
         $this->_response = $return;
         
-        $this->parse();
+        $return = $this->parse();
         
         return $return;
 	}

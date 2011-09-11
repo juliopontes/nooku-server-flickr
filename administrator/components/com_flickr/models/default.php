@@ -42,7 +42,7 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 	
 	protected function _initialize($config)
 	{
-		$this->addFilter('admin::com.flickr.filter.photos');
+		//$this->addFilter('admin::com.flickr.filter.photos');
 		
 		parent::_initialize($config);
 	}
@@ -114,6 +114,9 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 				array_push(self::$_flickr_methods[$scope], $method);
 			}
 		}
+		
+		var_dump(self::$_flickr_methods);
+		exit;
 	
 		return self::$_flickr_methods;
 	}
