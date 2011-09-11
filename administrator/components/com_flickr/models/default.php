@@ -40,6 +40,13 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 		$this->getMethods();
 	}
 	
+	protected function _initialize($config)
+	{
+		$this->addFilter('admin::com.flickr.filter.photos');
+		
+		parent::_initialize($config);
+	}
+	
 	/**
 	 * Array of config
 	 * 
@@ -78,6 +85,7 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 	{
 		$method_name = 'flickr.'.str_replace('flickr.','',$method_name);
 		$this->set('method',$method_name);
+		$this->_method_identifier = $method_name;
 		
 		return $this;
 	}
@@ -97,7 +105,7 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 				'nojsoncallback' => 1,
 				'api_key' => self::$_config['api_key']
 			));
-			$response = $this->request($this->_url);
+			$response = $this->send($this->_url);
 	
 			foreach($response->methods->method as $method)
 			{
@@ -128,30 +136,9 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
     	
         if (array_key_exists($scope, self::$_flickr_methods) !== false && array_search($method, self::$_flickr_methods[$scope]) !== false)
         {
-        	$response = $this->method($scope.'.'.$method)->getResponse();
+        	$this->method($scope.'.'.$method)->getResponse();
         	
-        	if ($response->stat != 'ok')
-        	{
-        		throw new Exception($response->message,$response->code);
-        	}
-        	
-        	//filter response by scope
-        	switch ($scope)
-        	{
-        		case 'people':
-        			return $response->person;
-        			break;
-        		case 'tags':
-        			return $response->hottags->tag;
-        			break;
-        		case 'photosets':
-        			return $response->photosets;
-        		case 'photos':
-        			return $response->photo;
-        			break;
-        	}
-        	
-            return $response;
+            return $this;
         }
 
         return parent::__call($method, $args);
