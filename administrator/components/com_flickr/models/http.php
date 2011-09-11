@@ -1,8 +1,5 @@
 <?php
 jimport('joomla.cache.cache');
-JLoader::import('filter.interface',dirname(__FILE__));
-JLoader::import('filter.filter',dirname(__FILE__));
-JLoader::import('filter.abstract',dirname(__FILE__));
 
 /**
  * Abstract Model Http Class
@@ -27,13 +24,6 @@ abstract class ComFlickrModelHttp extends KModelAbstract
 	 * @var object
 	 */
 	protected $_state;
-	
-	/**
-     * The set of request filters for http request
-     *
-     * @var array
-     */
-   	protected $_filters = array();
 	
 	/**
 	 * Cached data
@@ -108,13 +98,6 @@ abstract class ComFlickrModelHttp extends KModelAbstract
 	 */
 	protected function _initialize(KConfig $config)
 	{
-		$config->append(array(
-            'state'      		=> KFactory::tmp('lib.koowa.model.state'),
-       		'command_chain' 	=> new KCommandChain(),
-			'dispatch_events'   => false,
-    		'enable_callbacks' 	=> false
-		));
-		
 		$this->_cache = JCache::getInstance();
 		$this->_cache->setCaching($config->cache_request);
 		$this->_cache->setLifeTime($config->cache_time);
@@ -163,25 +146,6 @@ abstract class ComFlickrModelHttp extends KModelAbstract
     }
     
     /**
-	 * Parse the result
-	 * 
-	 * This function passes the result throught read filter chain and returns the
-	 * result.
-	 *
-	 * @return string	The parsed data
-	 */
-    public function parse()
-    {
-    	$context = $this->getCommandContext();
-    	
-    	$context->data = $this->_response;
-    	
-    	$result = $this->getCommandChain()->run(ComFlickrModelHttpFilter::MODE_READ, $context);
-    	
-        return $context;
-    }
-    
-    /**
      * Request a single URL or queue request
      * 
      * @param mixed $url string or KHttpUrl object
@@ -204,55 +168,6 @@ abstract class ComFlickrModelHttp extends KModelAbstract
         
         return $return;
 	}
-	
-	/**
-	 * Adds one or multiple filters for response transformation
-	 * 
-	 * @param array 	Array of one or more behaviors to add.
-	 * @return ComFlickrModelHttp
-	 */
-	public function addFilter($filters)
- 	{
- 		$filters =  (array) KConfig::toData($filters);
- 	    
- 	    foreach($filters as $filter)
-		{
-			if(!($filter instanceof ComFlickrModelHttpFilterInterface)) 
-			{
-				$identifier = (string) $filter;
-				$filter     = ComFlickrModelHttpFilter::factory($filter);
-			}
-			else $identifier = (string) $filter->getIdentifier();
-				
-			//Enqueue the filter in the command chain
-			$this->getCommandChain()->enqueue($filter);
-			
-			//Store the filter
-			$this->_filters[$identifier] = $filter;
-		}
-		
-		return $this;
- 	}
-	
-	/**
-	 * Get the filters for the http model
-	 *
-	 * @return array	An asscociate array of filters. The keys are the filter identifiers.
-	 */
- 	public function getFilters()
- 	{
- 		return $this->_filters;
- 	}
- 	
-	/**
-	 * Get a filter by identifier
-	 *
-	 * @return array	An asscociate array of filters keys are the filter identifiers
-	 */
- 	public function getFilter($identifier)
- 	{
- 		return isset($this->_filters[$identifier]) ? $this->_filters[$identifier] : null;
- 	}
 	
  	
 	private function _requestCurl($url)
