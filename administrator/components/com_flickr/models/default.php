@@ -1,4 +1,6 @@
 <?php
+jimport('joomla.utilities.arrayhelper');
+
 class ComFlickrModelDefault extends ComFlickrModelHttp
 {
 	/**
@@ -125,63 +127,22 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 		return self::$_flickr_methods;
 	}
 	
+	/**
+	 * Create row data for model
+	 */
 	protected function _afterRequest()
 	{
 		//check requested format
 		if ($this->_url->query['format'] == 'json')
 		{
-			jimport('joomla.utilities.arrayhelper');
 			//decode json data
-			$this->_response = json_decode($this->_response);
+			$json_response = json_decode($this->_response);
 			
 			//transform data by method from flickr
 			switch ($this->_url->query['method'])
 			{
-				case 'flickr.interestingness.getList':
-					$this->_total = $this->_response->photos->total;
-					
-					$rowset = $this->createRowset();
-					foreach($this->_response->photos->photo as $photo)
-					{
-						$data = array(
-							'id' => $photo->id,
-							'title' => $photo->title,
-							'img' => KFactory::get('admin::com.flickr.template.helper.image')->photo($photo)
-						);
-						$rowset->insert($this->createItem(array('data' => $data)));
-					}
-					
-					$this->_list = $rowset;
-					break;
-				case 'flickr.photos.getInfo':
-					$photo = $this->_response->photo;
-					$owner = $photo->owner;
-					
-					$photoUrl = JArrayHelper::getColumn($photo->urls->url,'_content');
-					if( count($photoUrl) == 1 ) $photoUrl = $photoUrl[0];
-					
-					$data = array(
-						'id' => $photo->id,
-						'img' => KFactory::get('admin::com.flickr.template.helper.image')->photo($photo),
-						'owner' => array(
-							'nsid' => $owner->nsid,
-							'username' => $owner->username,
-							'realname' => $owner->realname,
-							'location' => $owner->location
-						),
-						'title' => $photo->title->_content,
-						'taken_date' => $photo->dates->taken,
-						'posted_date' => $photo->dates->posted,
-						'nr_comments' => $photo->comments->_content,
-						'description' => $photo->description->_content,
-						'url' => $photoUrl,
-						'tags' => JArrayHelper::getColumn($photo->tags->tag,'_content')
-					);
-					
-					$this->createItem(array('data' => $data));
-					break;
 				case 'flickr.reflection.getMethods':
-					$this->_response = JArrayHelper::getColumn($this->_response->methods->method,'_content');
+					$this->_response = JArrayHelper::getColumn($json_response->methods->method,'_content');
 					break;
 			}
 		}
