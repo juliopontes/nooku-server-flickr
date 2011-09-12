@@ -49,13 +49,6 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 		$this->getMethods();
 	}
 	
-	protected function _initialize($config)
-	{
-		//$this->addFilter('admin::com.flickr.filter.photos');
-		
-		parent::_initialize($config);
-	}
-	
 	/**
 	 * Array of config
 	 * 
@@ -108,12 +101,14 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 	{
 		if (empty(self::$_flickr_methods) && !empty(self::$_config['api_key']))
 		{
+			$this->_url->set('http://api.flickr.com/services/rest/');
 			$this->_url->setQuery(array(
 				'method' => 'flickr.reflection.getMethods',
 				'format' => 'json',
 				'nojsoncallback' => 1,
 				'api_key' => self::$_config['api_key']
 			));
+			
 			$methods = $this->send($this->_url);
 	
 			foreach($methods as $method)
@@ -143,6 +138,7 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 			{
 				case 'flickr.reflection.getMethods':
 					$this->_response = JArrayHelper::getColumn($json_response->methods->method,'_content');
+					return false;
 					break;
 			}
 		}
@@ -182,10 +178,16 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
      */
     public function __call($method, $args)
     {
+    	if (empty(self::$_flickr_methods))
+    	{
+    		throw new KException('Flickr methods not loaded');
+    	}
+    	
     	$scope = $this->getIdentifier()->name;
     	
         if (array_key_exists($scope, self::$_flickr_methods) !== false && array_search($method, self::$_flickr_methods[$scope]) !== false)
         {
+        	$this->_state->format = 'json';
         	$this->method($scope.'.'.$method)->getResponse();
             return $this;
         }

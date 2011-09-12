@@ -179,10 +179,7 @@ abstract class ComFlickrModelHttp extends KModelAbstract
 		
 		if ($this->_cache_request)
 		{
-			$cache_group = (string)$this->getIdentifier();
-			$cache_group = str_replace('::','.',$cache_group);
-			$cache_group = str_replace('.','_',$cache_group);
-			
+			$cache_group = (string)$this->getIdentifier()->package;
 			$this->_response = $this->_cache->get($request_key,$cache_group);
 			if (empty($this->_response))
 			{
