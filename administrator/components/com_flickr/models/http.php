@@ -183,31 +183,49 @@ abstract class ComFlickrModelHttp extends KModelAbstract
 			$cache_group = str_replace('::','.',$cache_group);
 			$cache_group = str_replace('.','_',$cache_group);
 			
-			$return = json_decode($this->_cache->get($request_key,$cache_group));
-			if (!is_object($return))
+			$this->_response = $this->_cache->get($request_key,$cache_group);
+			if (empty($this->_response))
 			{
-				$return = $this->_callCurl($url);
-	        	$this->_cache->store(json_encode($return),$request_key,$cache_group);
-			}
-			else{
-				echo 'cached data';
-				exit;
+				$this->_cache->store($this->_callCurl($url),$request_key,$cache_group);
 			}
 		}
 		else {
-			$return = $this->_callCurl($url);
+			$this->_callCurl($url);
 		}
+		
+        $this->_afterRequest();
         
-        if ( KRequest::get('get.format', 'cmd', 'html') == 'html' && !is_object($return) )
-        {
-        	$return = json_decode($return);
-        }
-        
-        $this->_response = $return;
-        
-        $return = $this->parse();
-        
-        return $return;
+        return $this->_response;
+	}
+	
+	/**
+	 * after request function
+	 * 
+	 * @return void
+	 */
+	protected function _afterRequest()
+	{
+		
+	}
+	
+	/**
+	 * Create an Item
+	 * 
+	 * @param array $data
+	 */
+	public function createItem($data = array())
+	{
+		return KFactory::tmp('lib.koowa.database.row.default', $data);
+	}
+	
+	/**
+	 * Return new rowset default
+	 * 
+	 * @return RowsetDefault object
+	 */
+	public function createRowset()
+	{
+		return KFactory::tmp('lib.koowa.database.rowset.default');
 	}
 	
 	/**

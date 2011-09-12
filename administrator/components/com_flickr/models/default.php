@@ -16,6 +16,13 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 	private static $_flickr_methods = array();
 	
 	/**
+	 * Flickr method identifier
+	 * 
+	 * @var string
+	 */
+	private $_flickr_method_identifier = '';
+	
+	/**
 	 * Default config
 	 * 
 	 * @var array
@@ -105,20 +112,99 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 				'nojsoncallback' => 1,
 				'api_key' => self::$_config['api_key']
 			));
-			$response = $this->send($this->_url);
+			$methods = $this->send($this->_url);
 	
-			foreach($response->methods->method as $method)
+			foreach($methods as $method)
 			{
-				list($flickr,$scope,$method) = explode('.',$method->_content);
+				list($flickr,$scope,$method) = explode('.',$method);
 				if( !isset(self::$_flickr_methods[$scope]) ) self::$_flickr_methods[$scope] = array();
 				array_push(self::$_flickr_methods[$scope], $method);
 			}
 		}
-		
-		var_dump(self::$_flickr_methods);
-		exit;
 	
 		return self::$_flickr_methods;
+	}
+	
+	protected function _afterRequest()
+	{
+		//check requested format
+		if ($this->_url->query['format'] == 'json')
+		{
+			jimport('joomla.utilities.arrayhelper');
+			//decode json data
+			$this->_response = json_decode($this->_response);
+			
+			//transform data by method from flickr
+			switch ($this->_url->query['method'])
+			{
+				case 'flickr.interestingness.getList':
+					$this->_total = $this->_response->photos->total;
+					
+					$rowset = $this->createRowset();
+					foreach($this->_response->photos->photo as $photo)
+					{
+						$data = array(
+							'id' => $photo->id,
+							'title' => $photo->title,
+							'img' => KFactory::get('admin::com.flickr.template.helper.image')->photo($photo)
+						);
+						$rowset->insert($this->createItem(array('data' => $data)));
+					}
+					
+					$this->_list = $rowset;
+					break;
+				case 'flickr.photos.getInfo':
+					$photo = $this->_response->photo;
+					$owner = $photo->owner;
+					
+					$photoUrl = JArrayHelper::getColumn($photo->urls->url,'_content');
+					if( count($photoUrl) == 1 ) $photoUrl = $photoUrl[0];
+					
+					$data = array(
+						'id' => $photo->id,
+						'img' => KFactory::get('admin::com.flickr.template.helper.image')->photo($photo),
+						'owner' => array(
+							'nsid' => $owner->nsid,
+							'username' => $owner->username,
+							'realname' => $owner->realname,
+							'location' => $owner->location
+						),
+						'title' => $photo->title->_content,
+						'taken_date' => $photo->dates->taken,
+						'posted_date' => $photo->dates->posted,
+						'nr_comments' => $photo->comments->_content,
+						'description' => $photo->description->_content,
+						'url' => $photoUrl,
+						'tags' => JArrayHelper::getColumn($photo->tags->tag,'_content')
+					);
+					
+					$this->createItem(array('data' => $data));
+					break;
+				case 'flickr.reflection.getMethods':
+					$this->_response = JArrayHelper::getColumn($this->_response->methods->method,'_content');
+					break;
+			}
+		}
+	}
+	
+	public function getList()
+	{
+		if (empty($this->_list))
+		{
+			$this->__call('getList',array());
+		}
+		
+		return $this->_list;
+	}
+	
+	public function getTotal()
+	{
+		if (empty($this->_list))
+		{
+			$this->__call('getList',array());
+		}
+		
+		return $this->_total;
 	}
     
 	/**
@@ -140,7 +226,6 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
         if (array_key_exists($scope, self::$_flickr_methods) !== false && array_search($method, self::$_flickr_methods[$scope]) !== false)
         {
         	$this->method($scope.'.'.$method)->getResponse();
-        	
             return $this;
         }
 

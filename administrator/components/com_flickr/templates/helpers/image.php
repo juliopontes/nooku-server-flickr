@@ -27,6 +27,8 @@ class ComFlickrTemplateHelperImage extends KTemplateHelperAbstract
 			$src = preg_replace($regexVar, $config->get($cleanVar), $src,1);
 		}
 
-		return '<img src="'.$src.'" alt="'.$config->title->_content.'" />';
+		$alt = !empty($config->title->_content) ? $config->title->_content : '' ;
+		
+		return '<img src="'.$src.'" alt="'.$alt.'" />';
 	}
 }
