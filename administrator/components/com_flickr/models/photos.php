@@ -62,6 +62,7 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 					foreach($photos->photo as $photo)
 					{
 						$data = array(
+							'id' => $photo->id,
 							'title' => $photo->title,
 							'img' => KFactory::get('admin::com.flickr.template.helper.image')->photo($photo),
 							'description' => ''
