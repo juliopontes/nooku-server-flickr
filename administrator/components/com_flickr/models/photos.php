@@ -11,7 +11,7 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 		parent::__construct($config);
 		
 		$this->_state
-			->insert('photo_id'	,'word', KRequest::get('get.id','int'));
+			->insert('photo_id'	,'string', KRequest::get('get.id','string'));
 	}
 	
 	public function getItem()
@@ -35,7 +35,7 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 		if ($this->_url->query['format'] == 'json')
 		{
 			//decode json data
-			if (!is_array($this->_response) && !is_object($this->_response))
+			if (!is_object($this->_response) && !is_array($this->_response))
 				$json_response = json_decode($this->_response);
 			
 			//transform data by method from flickr

@@ -1,12 +1,8 @@
 <?php defined('KOOWA') or die('Restricted access'); ?>
-<ul class="display">
+
 <?php foreach($photos as $photo): ?>
-	<li class="content_block">
-		<a href="<?= @route('index.php?option=com_flickr&view=photo&id='.$photo->id) ?>">
-			<?= $photo->img; ?>
-		</a>
-		<h2><?= $photo->title; ?></h2>
-		<p><?= $photo->description; ?></p>
-	</li>
+	<a href="<?= @route('index.php?option=com_flickr&view=photo&id='.$photo->id) ?>">
+		<span></span>
+		<?= $photo->img; ?>
+	</a>
 <?php endforeach; ?>
-</ul>

@@ -1,13 +1,12 @@
 <?php defined('KOOWA') or die('Restricted access'); ?>
 
-<?php if(!empty($photosets)): ?>
 <ul>
 <?php foreach($photosets as $photoset): ?>
 	<li>
-		<?php echo $photoset->title->_content; ?>
-		<p><?php echo $photoset->description->_content; ?></p>
-		<?= @helper('image.photo', $photoset); ?>
+		<a href="<?= @route('option=com_flickr&view=photoset&id='.$photoset->id) ?>"><?php echo $photoset->title; ?></a>
+		<?php if(!empty($photoset->description)): ?>
+			<p><?php echo $photoset->description; ?></p>
+		<?php endif; ?>
 	</li>
 <?php endforeach; ?>
 </ul>
-<?php endif; ?>

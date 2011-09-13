@@ -12,6 +12,9 @@ class ComFlickrTemplateHelperImage extends KTemplateHelperAbstract
 			$url = 'http://farm{farm}.static.flickr.com/{server}/{id}_{secret}.jpg';
 		}
 		else {
+			$config->append(array(
+				'size' => $size
+			));
 			$url = 'http://farm{farm}.static.flickr.com/{server}/{id}_{secret}_{size}.jpg';
 		}
 		

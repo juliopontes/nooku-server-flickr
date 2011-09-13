@@ -175,6 +175,8 @@ abstract class ComFlickrModelHttp extends KModelAbstract
 		if (!($url instanceof KHttpUrl)) $url = KFactory::get('lib.koowa.http.url', array('url' => $url));
 		$this->_url = $url;
 		
+		$this->_beforeRequest();
+		
 		$request_key = md5((string)$url);
 		
 		if ($this->_cache_request)
@@ -193,6 +195,16 @@ abstract class ComFlickrModelHttp extends KModelAbstract
         $this->_afterRequest();
         
         return $this->_response;
+	}
+	
+	/**
+	 * before request function
+	 * 
+	 * @return void
+	 */
+	protected function _beforeRequest()
+	{
+		
 	}
 	
 	/**

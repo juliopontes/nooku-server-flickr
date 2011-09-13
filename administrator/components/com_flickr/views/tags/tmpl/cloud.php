@@ -2,7 +2,7 @@
 <?php if(is_object($tags)): ?>
 	<ul>
 	<?php foreach($tags as $tag): ?>
-		<li><?php echo $tag->_content; ?></li>
+		<li><?php echo $tag; ?></li>
 	<?php endforeach; ?>
 	</ul>
 <?php endif; ?>
