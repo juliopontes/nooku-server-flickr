@@ -24,6 +24,18 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 		return $this->_item;
 	}
 	
+	public function getList()
+	{
+		if(empty($this->_list))
+		{
+			$this->_state->format = 'json';
+        	$this->_state->api_key = self::$_config['api_key'];
+			$this->set('text','nooku')->method('photos.search')->getResponse();
+		}
+		
+		return $this->_list;
+	}
+	
 	/**
 	 * Create row data for model
 	 */
@@ -41,6 +53,26 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 			//transform data by method from flickr
 			switch ($this->_url->query['method'])
 			{
+				case 'flickr.photos.search':
+					$photos = $json_response->photos;
+					
+					$this->_total = $photos->total;
+					
+					$rowset = $this->createRowset();
+					foreach($photos->photo as $photo)
+					{
+						$data = array(
+							'title' => $photo->title,
+							'img' => KFactory::get('admin::com.flickr.template.helper.image')->photo($photo),
+							'description' => ''
+						);
+						$rowset->insert($this->createItem(array('data' => $data)));
+					}
+					
+					$this->_list = $rowset;
+					break;
+					
+					break;
 				case 'flickr.photos.getSizes':
 					$rowset = $this->createRowset();
 					foreach($json_response->sizes->size as $size)

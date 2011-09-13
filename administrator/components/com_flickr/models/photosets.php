@@ -11,6 +11,7 @@ class ComFlickrModelPhotosets extends ComFlickrModelDefault
 		parent::__construct($config);
 		
 		$this->_state
+			->insert('user_id' ,'string', '39269070@N03')
 			->insert('photoset_id'	,'string', KRequest::get('get.id','string'));
 	}
 	

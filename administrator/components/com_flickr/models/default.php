@@ -43,7 +43,7 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 	 * 
 	 * @var array
 	 */
-	private static $_config = array(
+	protected static $_config = array(
 		'api_key' => '25e29fe5c8c606b38ef3fe473dfada36',
 		//auto assign aruments to requested method to model state
 		'auto_assign' => true
