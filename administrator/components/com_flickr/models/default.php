@@ -187,6 +187,7 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
     	
         if (array_key_exists($scope, self::$_flickr_methods) !== false && array_search($method, self::$_flickr_methods[$scope]) !== false)
         {
+        	//@todo why format change to html ?
         	$this->_state->format = 'json';
         	$this->method($scope.'.'.$method)->getResponse();
             return $this;
