@@ -698,18 +698,23 @@ window.addEvent('domready', function() {
 	$$('div.box').each(function(box,index){
 		$(box.id).fade('hide');
 		new LazyLoad({container: $(box.id).getElement('ul')});
-	});
-	setTimeout(function(){
-		$('interssingness').fade('in');
+		timerFade = (index + 1) * 900;
 		setTimeout(function(){
-			$('search').fade('in');
-			setTimeout(function(){
-				$('photoset').fade('in');
-				setTimeout(function(){
-					$('photosets').fade('in');
-				},1000);
-			},1000);
-		},1000);
-	},1000);
+			$(box.id).fade('in');
+			$(box.id).getElements('li').each(function(li,index){
+				li.addEvents({
+					mouseover: function(){
+						this.tween('background-color','#F9F9F9','#f0f0f0 ');
+					},
+					mouseout: function(){
+						setTimeout(this.tween('background-color','#f0f0f0 ','#F9F9F9'),3000)
+					}
+				});
+				li.setStyle('margin-left',-300);
+				timerLi = (index + 1) * 200;
+				setTimeout(function(){li.tween('margin-left', -200, 0)},timerLi);
+			});
+		},timerFade);
+	});
 });
 </script>
