@@ -3,17 +3,16 @@ class ComFlickrTemplateHelperImage extends KTemplateHelperAbstract
 {
 	private $expElement = "/\{[\w\s\d\[\];:]*\}/";
 	
-	public function photo( $photo,$size=null )
+	public function photo( $data = array() )
 	{
-		$config = new KConfig($photo);
-		
-		if (is_null($size))
+		$config = new KConfig($data['photo']);
+		if (!isset($data['size']))
 		{
 			$url = 'http://farm{farm}.static.flickr.com/{server}/{id}_{secret}.jpg';
 		}
 		else {
 			$config->append(array(
-				'size' => $size
+				'size' => $data['size']
 			));
 			$url = 'http://farm{farm}.static.flickr.com/{server}/{id}_{secret}_{size}.jpg';
 		}
@@ -30,7 +29,7 @@ class ComFlickrTemplateHelperImage extends KTemplateHelperAbstract
 			$src = preg_replace($regexVar, $config->get($cleanVar), $src,1);
 		}
 
-		$alt = !empty($config->title->_content) ? $config->title->_content : '' ;
+		$alt = !empty($config->alt) ? $config->alt : '' ;
 		
 		return '<img src="'.$src.'" alt="'.$alt.'" />';
 	}

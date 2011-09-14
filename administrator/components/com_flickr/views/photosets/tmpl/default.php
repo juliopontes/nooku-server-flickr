@@ -1,5 +1,4 @@
 <?php defined('KOOWA') or die('Restricted access'); ?>
-
 <ul>
 <?php foreach($photosets as $photoset): ?>
 	<li>

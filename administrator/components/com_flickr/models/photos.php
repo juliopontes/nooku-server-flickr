@@ -30,10 +30,17 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 		{
 			$this->_state->format = 'json';
         	$this->_state->api_key = self::$_config['api_key'];
-			$this->set('text','nooku')->method('photos.search')->getResponse();
+			$this->set('text','nooku')->search();
 		}
 		
 		return $this->_list;
+	}
+	
+	public function search()
+	{
+		$this->method('photos.search')->getResponse();
+		
+		return $this;
 	}
 	
 	/**
@@ -64,7 +71,12 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 						$data = array(
 							'id' => $photo->id,
 							'title' => $photo->title,
-							'img' => KFactory::get('admin::com.flickr.template.helper.image')->photo($photo),
+							'image' => array(
+								'id' => $photo->id,
+								'secret' => $photo->secret,
+								'farm' => $photo->farm,
+								'server' => $photo->server
+							),
 							'description' => ''
 						);
 						$rowset->insert($this->createItem(array('data' => $data)));
@@ -101,7 +113,12 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 					
 					$data = array(
 						'id' => $photo->id,
-						'img' => KFactory::get('admin::com.flickr.template.helper.image')->photo($photo),
+						'image' => array(
+								'id' => $photo->id,
+								'secret' => $photo->secret,
+								'farm' => $photo->farm,
+								'server' => $photo->server
+						),
 						'owner' => array(
 							'nsid' => $owner->nsid,
 							'username' => nl2br($owner->username),

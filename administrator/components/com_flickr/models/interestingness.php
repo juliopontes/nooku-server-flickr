@@ -27,7 +27,12 @@ class ComFlickrModelInterestingness extends ComFlickrModelDefault
 						$data = array(
 							'id' => $photo->id,
 							'title' => $photo->title,
-							'img' => KFactory::get('admin::com.flickr.template.helper.image')->photo($photo)
+							'image' => array(
+								'id' => $photo->id,
+								'secret' => $photo->secret,
+								'farm' => $photo->farm,
+								'server' => $photo->server
+							)
 						);
 						$rowset->insert($this->createItem(array('data' => $data)));
 					}

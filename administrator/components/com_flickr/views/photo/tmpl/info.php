@@ -29,7 +29,7 @@ span.tag {
 }
 </style>
 <div class="-koowa-box-flex">
-	<?= $photo->img; ?>
+	<?= @helper('image.photo', array('photo' => $photo->image)); ?>
 	<p><?= $photo->description; ?></p>
 </div>
 <div id="sidebar">
@@ -53,23 +53,27 @@ span.tag {
 				<p><?= $photo->owner['location']; ?></p>
 			<?php endif; ?>
 		</div>
+		
 		<h3><?= @text('taken date'); ?></h3>
 		<div class="box">
 			<p><?= $photo->taken_date; ?></p>
 		</div>
+		
+		<?php if(!empty($photo->tags)): ?>
 		<h3><?= @text('tags'); ?></h3>
 		<div class="box">
 		<?php foreach($photo->tags as $tag): ?>
 			<span class="tag"><?= $tag ?></span>
 		<?php endforeach;?>
 		</div>
+		<?php endif; ?>
+	
+		<?php if(!empty($photo->sizes)): ?>
 		<h3><?= @text('sizes'); ?></h3>
 		<div class="box">
-		
 		<?php foreach($photo->sizes as $size): ?>
 			<p><?= $size->width; ?> x <?= $size->height; ?> (<a target="_blank" href="<?= $size->url; ?>"><?= @text('url'); ?></a> | <a target="_blank" href="<?= $size->source; ?>"><?= @text('source'); ?></a>)</p>
 		<?php endforeach; ?>
-		
 		</div>
-		
+		<?php endif; ?>
 </div>

@@ -43,7 +43,12 @@ class ComFlickrModelPhotosets extends ComFlickrModelDefault
 						$data = array(
 							'id' => $photo->id,
 							'title' => $photo->title,
-							'img' => KFactory::get('admin::com.flickr.template.helper.image')->photo($photo)
+							'image' => array(
+								'secret' => $photo->secret,
+								'server' => $photo->server,
+								'farm' => $photo->farm,
+								'id' => $photo->id
+							)
 						);
 						
 						$rowset->insert($this->createItem(array('data' => $data)));
@@ -61,12 +66,13 @@ class ComFlickrModelPhotosets extends ComFlickrModelDefault
 					{
 						$data = array(
 							'id' => $photoset->id,
-							'primary' => $photoset->primary,
-							'secret' => $photoset->secret,
-							'server' => $photoset->server,
-							'farm' => $photoset->farm,
+							'image' => array(
+								'secret' => $photoset->secret,
+								'server' => $photoset->server,
+								'farm' => $photoset->farm,
+								'id' => $photoset->primary
+							),
 							'title' => $photoset->title->_content,
-							'img' => KFactory::get('admin::com.flickr.template.helper.image')->photo($photoset),
 							'description' => $photoset->description->_content,
 							'created_date' => $photoset->date_create
 						);
