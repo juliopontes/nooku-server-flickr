@@ -21,7 +21,7 @@ class ComFlickrModelInterestingness extends ComFlickrModelDefault
 				case 'flickr.interestingness.getList':
 					$this->_total = $json_response->photos->total;
 					
-					$rowset = $this->createRowset();
+					$rowset = $this->getRowset();
 					foreach($json_response->photos->photo as $photo)
 					{
 						$data = array(
@@ -34,7 +34,7 @@ class ComFlickrModelInterestingness extends ComFlickrModelDefault
 								'server' => $photo->server
 							)
 						);
-						$rowset->insert($this->createItem(array('data' => $data)));
+						$rowset->insert($this->getRow(array('data' => $data)));
 					}
 					
 					$this->_list = $rowset;

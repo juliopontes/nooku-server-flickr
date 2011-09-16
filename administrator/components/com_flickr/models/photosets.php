@@ -37,7 +37,7 @@ class ComFlickrModelPhotosets extends ComFlickrModelDefault
 					
 					$this->_total = $photoset->total;
 					
-					$rowset = $this->createRowset();
+					$rowset = $this->getRowset();
 					foreach ($photoset->photo as $photo)
 					{
 						$data = array(
@@ -51,7 +51,7 @@ class ComFlickrModelPhotosets extends ComFlickrModelDefault
 							)
 						);
 						
-						$rowset->insert($this->createItem(array('data' => $data)));
+						$rowset->insert($this->getRow(array('data' => $data)));
 					}
 					
 					$this->_list = $rowset;
@@ -61,7 +61,7 @@ class ComFlickrModelPhotosets extends ComFlickrModelDefault
 					
 					$this->_total = $photosets->total;
 					
-					$rowset = $this->createRowset();
+					$rowset = $this->getRowset();
 					foreach ($photosets->photoset as $photoset)
 					{
 						$data = array(
@@ -77,7 +77,7 @@ class ComFlickrModelPhotosets extends ComFlickrModelDefault
 							'created_date' => $photoset->date_create
 						);
 						
-						$rowset->insert($this->createItem(array('data' => $data)));
+						$rowset->insert($this->getRow(array('data' => $data)));
 					}
 					
 					$this->_list = $rowset;
@@ -101,19 +101,9 @@ class ComFlickrModelPhotosets extends ComFlickrModelDefault
 						'short_url' => "http://flickr.com/photos/{$photoset->owner}/sets/{$photoset->id}"
 					);
 					
-					$this->_item = $this->createItem(array('data' => $data));
+					$this->_item = $this->getRow(array('data' => $data));
 					break;
 			}
 		}
-	}
-	
-	public function getItem()
-	{
-		if(empty($this->_item))
-		{
-			$this->__call('getInfo',array());
-		}
-		
-		return $this->_item;
 	}
 }

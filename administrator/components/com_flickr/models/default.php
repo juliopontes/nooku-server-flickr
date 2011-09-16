@@ -15,21 +15,21 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 	 * 
 	 * @var array methods
 	 */
-	private static $_flickr_methods = array();
+	private static $_methods_list = array();
 	
 	/**
 	 * Flickr method identifier
 	 * 
 	 * @var string
 	 */
-	private $_flickr_method_identifier = '';
+	private $_method_identifier = '';
 	
 	/**
 	 * Reflection of current method info
 	 * 
 	 * @var object
 	 */
-	protected $_flickr_current_method = null;
+	protected $_current_method = null;
 	
 	/**
 	 * List of required arguments
@@ -39,15 +39,11 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 	protected $_required_arguments = array();
 	
 	/**
-	 * Default config
+	 * Auto assign flickr method arguments in our current states
 	 * 
-	 * @var array
+	 * @var boolean
 	 */
-	protected static $_config = array(
-		'api_key' => '25e29fe5c8c606b38ef3fe473dfada36',
-		//auto assign aruments to requested method to model state
-		'auto_assign' => true
-	);
+	protected $_auto_assign = true;
 	
 	/**
 	 * Constructor of class
@@ -62,37 +58,9 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 			->insert('method'	,'string', '')
 			->insert('format'	,'word','json')
 			->insert('nojsoncallback', 'int', 1)
-			->insert('api_key'	, 'string', self::$_config['api_key']);
+			->insert('api_key'	, 'string', '25e29fe5c8c606b38ef3fe473dfada36');
 		
-		$this->getMethods();
-	}
-	
-	/**
-	 * Array of config
-	 * 
-	 * @param mixed $parameter string config or array config
-	 */
-	public static function getConfig($parameter=null)
-	{
-		if (isset(self::$_config[$parameter]) && !is_null($parameter))
-		{
-			return self::$_config[$parameter];
-		}
-		
-		return self::$_config;
-	}
-	
-	/**
-	 * Set a parameter
-	 * 
-	 * @param mixed $parameter string config or array config
-	 */
-	public static function setConfig($property,$value=null)
-	{
-		if (isset(self::$_config[$property]) && !is_null($property))
-		{
-			self::$_config[$property] = $value;
-		}
+		$this->getMethodsList();
 	}
 	
 	/**
@@ -115,7 +83,7 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 	 *
 	 * @param object method info
 	 */
-	public function getMethod($method_name)
+	public function getMethodInfo($method_name)
 	{
 		$this->_url->set('http://api.flickr.com/services/rest/');
 		$this->_url->setQuery(array(
@@ -123,7 +91,7 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 			'method_name' => $method_name,
 			'format' => 'json',
 			'nojsoncallback' => 1,
-			'api_key' => self::$_config['api_key']
+			'api_key' => $this->_state->api_key
 		));
 			
 		return $this->send($this->_url);
@@ -134,16 +102,16 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 	 * 
 	 * @return array list of flickr methods
 	 */
-	public function getMethods()
+	public function getMethodsList()
 	{
-		if (empty(self::$_flickr_methods) && !empty(self::$_config['api_key']))
+		if (empty(self::$_methods_list) && !empty($this->_state->api_key))
 		{
 			$this->_url->set('http://api.flickr.com/services/rest/');
 			$this->_url->setQuery(array(
 				'method' => 'flickr.reflection.getMethods',
 				'format' => 'json',
 				'nojsoncallback' => 1,
-				'api_key' => self::$_config['api_key']
+				'api_key' => $this->_state->api_key
 			));
 			
 			$methods = $this->send($this->_url);
@@ -151,12 +119,12 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 			foreach($methods as $method)
 			{
 				list($flickr,$scope,$method) = explode('.',$method);
-				if( !isset(self::$_flickr_methods[$scope]) ) self::$_flickr_methods[$scope] = array();
-				array_push(self::$_flickr_methods[$scope], $method);
+				if( !isset(self::$_methods_list[$scope]) ) self::$_methods_list[$scope] = array();
+				array_push(self::$_methods_list[$scope], $method);
 			}
 		}
 	
-		return self::$_flickr_methods;
+		return self::$_methods_list;
 	}
 	
 	/**
@@ -169,14 +137,15 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 		
 		$requested_method = $this->_url->query['method'];
 		
-		if($requested_method != 'flickr.reflection.getMethodInfo' && $requested_method != 'flickr.reflection.getMethods' && self::$_config['auto_assign'])
+		if($requested_method != 'flickr.reflection.getMethodInfo' && $requested_method != 'flickr.reflection.getMethods' && $this->_auto_assign)
 		{
-			$this->_flickr_current_method = $this->getMethod($requested_method);
+			$this->_current_method = $this->getMethodInfo($requested_method);
 			
-			foreach($this->_flickr_current_method->arguments->argument as $argument)
+			foreach($this->_current_method->arguments->argument as $argument)
 			{
 				$argument_name = $argument->name;
-				$default_value = isset(self::$_config[$argument->name]) ? self::$_config[$argument->name] : KRequest::get('get.'.$argument->name,'string','');
+				$default_value = KRequest::get('get.'.$argument->name,'string',$this->_state->$argument_name);
+				
 				if ( !empty($default_value) ) {					
 					$this->_state->insert($argument->name,'string',$default_value);
 				}
@@ -205,13 +174,13 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 			
 			if ($json_response->stat == 'fail')
 			{
-				foreach ($this->_flickr_current_method->errors->error as $erro)
+				foreach ($this->_current_method->errors->error as $erro)
 				{
 					if ($erro->code == $json_response->code)
 					{
 						if (!empty($this->_required_arguments))
 						{
-							echo '<h1>'.$this->_flickr_current_method->method->name.'</h1>';
+							echo '<h1>'.$this->_current_method->method->name.'</h1>';
 							
 							echo 'Requested url: '.$this->_url;
 							
@@ -246,6 +215,24 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 		}
 	}
 	
+	/**
+	 * By default will call getInfo on flickr
+	 * 
+	 */
+	public function getItem()
+	{
+		if(empty($this->_item))
+		{
+			$this->__call('getInfo',array());
+		}
+		
+		return parent::getItem();
+	}
+	
+	/**
+	 * By default will call getList method on flickr
+	 * 
+	 */
 	public function getList()
 	{
 		if (empty($this->_list))
@@ -253,17 +240,21 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
 			$this->__call('getList',array());
 		}
 		
-		return $this->_list;
+		return parent::getList();
 	}
 	
+	/**
+	 * By default call getList method and return total
+	 * 
+	 */
 	public function getTotal()
 	{
-		if (empty($this->_list))
+		if (empty($this->_total) && empty($this->_list))
 		{
 			$this->__call('getList',array());
 		}
 		
-		return $this->_total;
+		return parent::getTotal();
 	}
     
 	/**
@@ -280,20 +271,19 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
      */
     public function __call($method, $args)
     {
-    	if (empty(self::$_flickr_methods))
+    	if (empty(self::$_methods_list))
     	{
     		throw new KException('Flickr methods not loaded');
     	}
     	
     	$scope = $this->getIdentifier()->name;
     	
-        if (array_key_exists($scope, self::$_flickr_methods) !== false && array_search($method, self::$_flickr_methods[$scope]) !== false)
+        if (array_key_exists($scope, self::$_methods_list) !== false && array_search($method, self::$_methods_list[$scope]) !== false)
         {
-        	//@todo why format change to html ?
+        	//@todo why/when format is changed to html ?
         	$this->_state->format = 'json';
-        	$this->_state->api_key = self::$_config['api_key'];
-        	
         	$this->method($scope.'.'.$method)->getResponse();
+        	
             return $this;
         }
 

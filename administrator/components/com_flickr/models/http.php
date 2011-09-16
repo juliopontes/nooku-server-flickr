@@ -54,6 +54,20 @@ abstract class ComFlickrModelHttp extends KModelAbstract
 	protected $_response;
 	
 	/**
+     * Row object or identifier (APP::com.COMPONENT.row.NAME)
+     *
+     * @var string|object
+     */
+	protected $_row;
+	
+	/**
+     * Rowet object or identifier (APP::com.COMPONENT.rowset.NAME)
+     *
+     * @var string|object
+     */
+	protected $_rowset;
+	
+	/**
 	 * Constructor
 	 *
 	 * @param 	object 	An optional KConfig object with configuration options
@@ -70,7 +84,8 @@ abstract class ComFlickrModelHttp extends KModelAbstract
 		parent::__construct($config);
 		
 		$this->_state = $config->state;
-		$this->_url = KFactory::get('lib.koowa.http.url', array('url' => $this->_url));
+		if( is_string($this->_url) )
+			$this->_url = KFactory::get('lib.koowa.http.url', array('url' => $this->_url));
 		
 		 // Mixin a command chain
         $this->mixin(new KMixinCommandchain($config->append(array('mixer' => $this))));
@@ -150,7 +165,7 @@ abstract class ComFlickrModelHttp extends KModelAbstract
      * 
      * @param mixed $url string or KHttpUrl object
      */
-	public function send($url=null)
+	protected function send($url=null)
 	{
 		$return = null;
 		
@@ -168,9 +183,8 @@ abstract class ComFlickrModelHttp extends KModelAbstract
         
         return $return;
 	}
-	
  	
-	private function _requestCurl($url)
+	protected function _requestCurl($url)
 	{
 		if (!($url instanceof KHttpUrl)) $url = KFactory::get('lib.koowa.http.url', array('url' => $url));
 		$this->_url = $url;
@@ -222,9 +236,18 @@ abstract class ComFlickrModelHttp extends KModelAbstract
 	 * 
 	 * @param array $data
 	 */
-	public function createItem($data = array())
+	public function getRow($options = array())
 	{
-		return KFactory::tmp('lib.koowa.database.row.default', $data);
+		if(!($this->_row instanceof KDatabaseRowInterface))
+        {
+        	$identifier         = clone $this->_identifier;
+            $identifier->path   = array('database', 'row');
+            $identifier->name   = KInflector::singularize($this->_identifier->name);
+            
+            $this->_row = KFactory::tmp($identifier, $options);
+        }
+        
+		return $this->_row;
 	}
 	
 	/**
@@ -232,9 +255,17 @@ abstract class ComFlickrModelHttp extends KModelAbstract
 	 * 
 	 * @return RowsetDefault object
 	 */
-	public function createRowset()
+	public function getRowset($options = array())
 	{
-		return KFactory::tmp('lib.koowa.database.rowset.default');
+		if(!($this->_rowset instanceof KDatabaseRowsetInterface))
+        {
+            $identifier         = clone $this->_identifier;
+            $identifier->path   = array('database', 'rowset');
+        
+            $this->_rowset = KFactory::tmp($identifier,$options);
+        }
+		
+		return $this->_rowset;
 	}
 	
 	/**

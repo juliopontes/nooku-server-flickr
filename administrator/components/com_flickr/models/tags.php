@@ -44,6 +44,6 @@ class ComFlickrModelTags extends ComFlickrModelDefault
 			$this->set('count',20)->getHotList();
 		}
 		
-		return $this->_list;
+		return parent::getList();
 	}
 }

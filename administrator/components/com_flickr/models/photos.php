@@ -14,26 +14,15 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 			->insert('photo_id'	,'string', KRequest::get('get.id','string'));
 	}
 	
-	public function getItem()
-	{
-		if(empty($this->_item))
-		{
-			$this->__call('getInfo',array());
-		}
-		
-		return $this->_item;
-	}
-	
 	public function getList()
 	{
 		if(empty($this->_list))
 		{
 			$this->_state->format = 'json';
-        	$this->_state->api_key = self::$_config['api_key'];
 			$this->set('text','nooku')->search();
 		}
 		
-		return $this->_list;
+		return parent::getList();
 	}
 	
 	public function search()
@@ -65,7 +54,7 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 					
 					$this->_total = $photos->total;
 					
-					$rowset = $this->createRowset();
+					$rowset = $this->getRowset();
 					foreach($photos->photo as $photo)
 					{
 						$data = array(
@@ -79,7 +68,7 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 							),
 							'description' => ''
 						);
-						$rowset->insert($this->createItem(array('data' => $data)));
+						$rowset->insert($this->getRow(array('data' => $data)));
 					}
 					
 					$this->_list = $rowset;
@@ -87,7 +76,7 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 					
 					break;
 				case 'flickr.photos.getSizes':
-					$rowset = $this->createRowset();
+					$rowset = $this->getRowset();
 					foreach($json_response->sizes->size as $size)
 					{
 						$data = array(
@@ -97,7 +86,7 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 							'source' => $size->source,
 							'url' => $size->url
 						);
-						$rowset->insert($this->createItem(array('data' => $data)));
+						$rowset->insert($this->getRow(array('data' => $data)));
 					}
 					
 					$this->_list = $rowset;
@@ -136,7 +125,7 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 						'sizes' => $photoSizes
 					);
 					
-					$this->_item = $this->createItem(array('data' => $data));
+					$this->_item = $this->getRow(array('data' => $data));
 					break;
 			}
 		}
