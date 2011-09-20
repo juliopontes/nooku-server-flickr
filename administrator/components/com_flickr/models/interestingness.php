@@ -34,7 +34,7 @@ class ComFlickrModelInterestingness extends ComFlickrModelDefault
 								'server' => $photo->server
 							)
 						);
-						$rowset->insert($this->getRow(array('data' => $data)));
+						$rowset->insert(clone $this->getRow()->setData($data));
 					}
 					
 					$this->_list = $rowset;

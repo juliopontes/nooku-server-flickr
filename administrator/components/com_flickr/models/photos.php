@@ -68,7 +68,7 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 							),
 							'description' => ''
 						);
-						$rowset->insert($this->getRow(array('data' => $data)));
+						$rowset->insert(clone $this->getRow()->setData($data));
 					}
 					
 					$this->_list = $rowset;
@@ -86,7 +86,7 @@ class ComFlickrModelPhotos extends ComFlickrModelDefault
 							'source' => $size->source,
 							'url' => $size->url
 						);
-						$rowset->insert($this->getRow(array('data' => $data)));
+						$rowset->insert(clone $this->getRow()->setData($data));
 					}
 					
 					$this->_list = $rowset;

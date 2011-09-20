@@ -1,4 +1,4 @@
-<div class="column opacity">
+<div class="column">
 	<h3><?= @text($column_title); ?></h3>
 	<ul class="list">
 	<?php foreach($photosets as $photoset): ?>

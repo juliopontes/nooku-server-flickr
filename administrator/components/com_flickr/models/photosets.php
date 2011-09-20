@@ -51,7 +51,7 @@ class ComFlickrModelPhotosets extends ComFlickrModelDefault
 							)
 						);
 						
-						$rowset->insert($this->getRow(array('data' => $data)));
+						$rowset->insert(clone $this->getRow()->setData($data));
 					}
 					
 					$this->_list = $rowset;
@@ -77,7 +77,7 @@ class ComFlickrModelPhotosets extends ComFlickrModelDefault
 							'created_date' => $photoset->date_create
 						);
 						
-						$rowset->insert($this->getRow(array('data' => $data)));
+						$rowset->insert(clone $this->getRow()->setData($data));
 					}
 					
 					$this->_list = $rowset;

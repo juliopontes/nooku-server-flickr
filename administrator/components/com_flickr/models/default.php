@@ -286,6 +286,9 @@ class ComFlickrModelDefault extends ComFlickrModelHttp
         	
             return $this;
         }
+        else {
+        	if ($scope == 'dashboards') return;
+        }
 
         return parent::__call($method, $args);
     }

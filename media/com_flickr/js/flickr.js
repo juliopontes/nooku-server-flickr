@@ -1,9 +1,18 @@
 var FlickrAnimation = new Class({
+	
+	Implements: [Options],
+	
+	options: {
+		elements: '.column'
+	},
+	
 	initialize: function()
 	{
+		if ($$(this.options.elements).lenght == 0) return;
+		
 		var that = this;
 		
-		$$('div.box').each(function(box,boxIndex){
+		$$(this.options.elements).each(function(box,boxIndex){
 			box.fade('hide');
 			new LazyLoad({container: box.getElement('ul')});
 			timerFade = (boxIndex + 1) * 900;
@@ -26,11 +35,11 @@ var FlickrAnimation = new Class({
 	hideDashboard: function(boxIndex,liIndex)
 	{
 		var that = this;
-		var boxes = $$('div.box');
+		var boxes = $$(this.options.elements);
 		
 		if(boxIndex == 0)
 		{
-			$$('div.box').getLast().fade('out');
+			boxes.getLast().fade('out');
 			setTimeout(function(){
 				boxes[3].fade('out');
 				setTimeout(function(){
@@ -45,7 +54,7 @@ var FlickrAnimation = new Class({
 			},200);
 		}
 		else {
-			$$('div.box').each(function(box,index){
+			boxes.each(function(box,index){
 				if(index != boxIndex)
 				{
 					boxTimer = (index - boxIndex) * 200;
@@ -64,8 +73,12 @@ var FlickrAnimation = new Class({
 
 	currentBoxAnimation: function(boxIndex,liIndex)
 	{
-		var boxes = $$('div.box');
+		var that = this;
+		var boxes = $$(this.options.elements);
 		var lis = boxes[boxIndex].getElements('li');
+		
+		this.options.currentBox = boxes[boxIndex];
+		
 		boxes[boxIndex].getElement('ul').setStyle('overflow-y','hidden');
 		countLi = 0;
 		boxes[boxIndex].getElements('li').each(function(li,index){
@@ -83,23 +96,73 @@ var FlickrAnimation = new Class({
 				slidePosition = (boxIndex * 306) * -1;
 				$('flickrdashboard').tween('margin-left',0,slidePosition);
 			}
-
-			var item = new Element('div',{id: 'item'});
-			var Info = new Element('div').addClassname('box').setStyle('width','200px');
-			
-			//boxes[boxIndex].getElement('ul').tween('width',480,200);
 			setTimeout(function(){
-				boxes[boxIndex].getElement('h3').tween('margin-top',0,'-30');
+				boxes[boxIndex].getElement('h3').fade('out');
+				
 				setTimeout(function(){
+					href = lis[liIndex].getElement('a').getProperty('href');
 					lis[liIndex].fade('out');
 					
-					//boxes[boxIndex].fade('out');
+					boxes[boxIndex].getElement('ul').addClass('dn');
+					new Fx.Morph(boxes[boxIndex], {
+					    duration: 'long',
+					    transition: Fx.Transitions.Sine.easeOut
+					}).start('.column_info');
 					
-					
-					//lis[liIndex].tween('width',lis[liIndex].getStyle('width').replace('px',''),window.innerWidth).tween('height',lis[liIndex].getStyle('height').replace('px',''),window.innerHeight);
-					
+					that.loadItem(href);
 				},200);
 			},200);
 		},200);
+	},
+	
+	loadItem: function(url)
+	{
+		var that = this;
+		
+		TrElement = new Element('tr');
+		TdElement = new Element('td',{id: 'toolbar-cancel',class: 'button'});
+		TdLink = new Element('a',{class: 'toolbar',html: 'Dashboard'});
+		
+		TdLink.addEvent('click',function(){
+			$$('table.toolbar').getLast().tween('margin-left',10,'-200');
+			that.backDashboard();
+		});
+		
+		spanElement = new Element('span',{class: 'icon-32-cancel'});
+		spanElement.inject(TdLink);
+		TdLink.inject(TdElement);
+		TdElement.inject(TrElement);
+		
+		TrElement.inject($$('table.toolbar').getLast());
+		$$('table.toolbar').setStyle('margin-left','-200').setStyle('display','block').tween('margin-left','-200',10);
+	},
+	
+	backDashboard: function()
+	{
+		new Fx.Morph(this.options.currentBox, {
+		    duration: 'long',
+		    transition: Fx.Transitions.Sine.easeOut
+		}).start('.column');
+		
+		this.options.currentBox.getElement('ul').setStyle('overflow-y','scroll');
+		this.options.currentBox.getElement('ul').removeClass('dn');
+		this.options.currentBox.getElement('h3').fade('in');
+		
+		
+		
+		countLi = 0;
+		this.options.currentBox.getElements('li').each(function(li,index){
+			setTimeout(function(){
+				li.tween('margin-top',-li.height,0).fade('in');
+			},countLi * 50);
+			countLi++;
+		});
+		
+		
+		
 	}
+});
+
+window.addEvent('domready', function() {
+	new FlickrAnimation();
 });

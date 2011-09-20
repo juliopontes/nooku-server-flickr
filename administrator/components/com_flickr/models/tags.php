@@ -19,7 +19,7 @@ class ComFlickrModelTags extends ComFlickrModelDefault
 					$tags = $json_response->hottags;
 					$this->_total = $tags->count;
 					
-					$rowset = $this->createRowset();
+					$rowset = $this->getRowset();
 					foreach ($tags->tag as $tag)
 					{
 						$data = array(
@@ -27,7 +27,7 @@ class ComFlickrModelTags extends ComFlickrModelDefault
 							'name' => $tag->_content,
 						);
 						
-						$rowset->insert($this->createItem(array('data' => $data)));
+						$rowset->insert(clone $this->getRow()->setData($data));
 					}
 					
 					$this->_list = $rowset;

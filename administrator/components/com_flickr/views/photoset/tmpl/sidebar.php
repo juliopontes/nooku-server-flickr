@@ -1,6 +1,6 @@
 <?php defined('KOOWA') or die('Restricted access'); ?>
 <style src="media://com_flickr/css/flickr.css" />
-<div id="sidebar">
+<div class="column_info">
 	<h3><?= @text('source'); ?></h3>
 	<div class="box">
 	<p>
