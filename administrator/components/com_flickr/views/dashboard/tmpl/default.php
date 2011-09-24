@@ -8,6 +8,9 @@
 	<?= @template('admin::com.flickr.view.photos.column',array('column_title' => 'Flickr: Interessingness','photos' => KFactory::tmp('admin::com.flickr.model.interestingness')->getList())); ?>
 	<?= @template('admin::com.flickr.view.photos.column',array('column_title' => 'Search: Nooku','photos' => KFactory::tmp('admin::com.flickr.model.photos')->set('text','nooku')->search()->getList())); ?>
 	<?= @template('admin::com.flickr.view.photos.column',array('column_title' => 'Photoset: Nooku Server','photos' => KFactory::tmp('admin::com.flickr.model.photosets')->set('photoset_id','72157627021171180')->getPhotos()->getList())); ?>
-	<?= @template('admin::com.flickr.view.photosets.column',array('column_title' => 'Photosets List: 39269070@N03','photosets' => KFactory::tmp('admin::com.flickr.model.photosets')->set('photoset_id','72157627021171180')->getPhotos()->getList())); ?>
+	<?= @template('admin::com.flickr.view.photosets.column',array('column_title' => 'Photosets List: 39269070@N03','photosets' => KFactory::tmp('admin::com.flickr.model.photosets')->set('user_id','39269070@N03')->getList())); ?>
 </div>
-<div id="flickritem"></div>
+<div id="flickritem" class="dn">
+	<div id="column_info" class="column_info"></div>
+	<div id="column_data" class="flickr_item -koowa-box-flex"></div>
+</div>

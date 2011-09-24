@@ -1,5 +1,6 @@
 .flickr_item {
 	padding: 3px;
+	float: left;
 }
 .opacity {
 	opacity: 0;	
@@ -80,11 +81,14 @@ span.tag {
     border-radius: 3px 3px 3px 3px;
     box-shadow: 0 1px 0 #FFFFFF;
     font-size: 11px;
-    line-height: 0;
     padding: 3px 7px;
     position: relative;
     margin-top: 6px;
     margin-left: 5px;
     margin-right: 5px;
     overflow: hidden;
+}
+
+.box p {
+	line-height: normal;
 }

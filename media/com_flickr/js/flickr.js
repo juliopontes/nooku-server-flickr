@@ -24,14 +24,14 @@ var FlickrAnimation = new Class({
 					if(index < 10)
 					{
 						li.setStyle('margin-left',-300);
-						timerLi = (index + 1) * 200;
-						setTimeout(function(){
-							li.tween('margin-left', -200, 0);
-							li.addEvent('click',function(){
-								that.hideDashboard(boxIndex,index);
-							});
-						},timerLi);
 					}
+					timerLi = (index + 1) * 200;
+					setTimeout(function(){
+						li.tween('margin-left', -200, 0);
+						li.addEvent('click',function(){
+							that.hideDashboard(boxIndex,index);
+						});
+					},timerLi);
 				});
 			},timerFade);
 		});
@@ -45,6 +45,21 @@ var FlickrAnimation = new Class({
 	{
 		var that = this;
 		var boxes = $$(this.options.elements);
+		
+		href = boxes[boxIndex].getElement('li:index('+liIndex+')').getElement('a').getProperty('href');
+		
+		params = href.split("?")[1].split("&");
+		params.each(function(param){
+			argument = param.split('=');
+			if ( argument[0] == 'view' ){
+				that.options.view = argument[1];
+			}
+		});
+		
+		new Request.JSON({method: 'get',url: href, onSuccess: function(data){
+			that.options.response = data;
+			that.dispatch();
+		}}).send('format=json');
 		
 		if(boxIndex == 0)
 		{
@@ -125,9 +140,12 @@ var FlickrAnimation = new Class({
 		},200);
 	},
 	
-	loadItem: function(url)
+	loadItem: function(href)
 	{
 		var that = this;
+		
+		$('flickrdashboard').addClass('dn');
+		$('flickritem').removeClass('dn');
 		
 		if (!$('toolbar-cancel'))
 		{
@@ -147,7 +165,20 @@ var FlickrAnimation = new Class({
 			
 			TrElement.inject($$('table.toolbar').getLast());
 		}
+		
 		$$('table.toolbar').setStyle('margin-left','-200').setStyle('display','block').tween('margin-left','-200',10);
+		
+		setTimeout(function(){
+			$('column_info').getElements('h3').each(function(element){
+				element.fade('in');
+			});
+			
+			$('column_info').getElements('.box').each(function(element){
+				element.fade('in');
+			});
+			
+			$('column_data').tween('margin-left',window.innerWidth,0);
+		},500);
 	},
 	
 	backDashboard: function()
@@ -155,42 +186,51 @@ var FlickrAnimation = new Class({
 		var that = this;
 		var boxes = $$(this.options.elements);
 		
-		new Fx.Morph(this.options.currentBox, {
-		    duration: 'long',
-		    transition: Fx.Transitions.Sine.easeOut
-		}).start('.column');
+		$$('div.pagetitle').getLast().set('html', 'Dashboard');
+		
+		$('column_data').tween('margin-left',0,window.innerWidth);
 		
 		setTimeout(function(){
-			that.options.currentBox.getElement('ul').removeClass('dn');
-			that.options.currentBox.getElement('ul').setStyle('overflow-y','scroll');
-			that.options.currentBox.getElement('h3').fade('in');
+			$('flickritem').addClass('dn');
+			$('flickrdashboard').removeClass('dn');
 			
-			countLi = 0;
-			
-			that.options.currentBox.getElements('li').each(function(li,index){
-				setTimeout(function(){
-					li.tween('margin-top',-li.height,0).fade('in');
-				},countLi * 50);
-				countLi++;
-			});
+			new Fx.Morph(that.options.currentBox, {
+			    duration: 'long',
+			    transition: Fx.Transitions.Sine.easeOut
+			}).start('.column');
 			
 			setTimeout(function(){
-				if(that.options.currentIndex > 0)
-				{
-					slidePosition = $('flickrdashboard').getStyle('margin-left').replace('px','');
-					$('flickrdashboard').tween('margin-left',slidePosition,0);
-				}
+				that.options.currentBox.getElement('ul').removeClass('dn');
+				that.options.currentBox.getElement('ul').setStyle('overflow-y','scroll');
+				that.options.currentBox.getElement('h3').fade('in');
 				
-				$$(that.options.elements).each(function(box,boxIndex){
-					if(boxIndex != that.options.currentIndex)
+				countLi = 0;
+				
+				that.options.currentBox.getElements('li').each(function(li,index){
+					setTimeout(function(){
+						li.tween('margin-top',-li.height,0).fade('in');
+					},countLi * 50);
+					countLi++;
+				});
+				
+				setTimeout(function(){
+					if(that.options.currentIndex > 0)
 					{
-						timerFade = (boxIndex + 1) * 600;
-						setTimeout(function(){
-							box.fade('in');
-							box.getElements('li').each(function(li,index){
-								if(index < 10)
-								{
-									li.setStyle('margin-left',-300);
+						slidePosition = $('flickrdashboard').getStyle('margin-left').replace('px','');
+						$('flickrdashboard').tween('margin-left',slidePosition,0);
+					}
+					
+					$$(that.options.elements).each(function(box,boxIndex){
+						if(boxIndex != that.options.currentIndex)
+						{
+							timerFade = (boxIndex + 1) * 600;
+							setTimeout(function(){
+								box.fade('in');
+								box.getElements('li').each(function(li,index){
+									if(index < 10)
+									{
+										li.setStyle('margin-left',-300);
+									}
 									timerLi = (index + 1) * 200;
 									setTimeout(function(){
 										li.tween('margin-left', -200, 0);
@@ -198,18 +238,219 @@ var FlickrAnimation = new Class({
 											that.hideDashboard(boxIndex,index);
 										});
 									},timerLi);
-								}
-							});
-						},timerFade);
-					}
-				});
-				
-			},800);
-		},500);
+								});
+							},timerFade);
+						}
+					});
+					
+				},800);
+			},500);
+		},300);
+	},
+	
+	dispatch: function()
+	{
+		$$('div.pagetitle').getLast().set('html', this.options.response.title);
 		
-		
+		switch (this.options.view)
+		{
+			case 'photo':
+				this.item = new FlickrHtmlPhoto(this.options.response);
+				break;
+			case 'photoset':
+				this.item = new FlickrHtmlPhotoset(this.options.response);
+				break;
+		}
 	}
 });
+
+var FlickrHtmlDefault = new Class({
+	
+	addInfo: function(title,html)
+	{
+		h3 = new Element('h3').set('html',title).fade('hide');
+		div = new Element('div').addClass('box').fade('hide');
+		
+		html.each(function(htmlc){
+			htmlc.inject(div);
+		});
+		
+		h3.inject($('column_info'));
+		div.inject($('column_info'));
+	},
+	
+	addData: function(html)
+	{
+		html.each(function(htmlc){
+			htmlc.inject($('column_data'));
+		});
+	},
+	
+	createImage: function(size)
+	{
+		image = this.response.image;
+		src = 'http://farm'+image.farm+'.static.flickr.com/'+image.server+'/'+image.id+'_'+image.secret;
+		
+		if (size != undefined)
+		{
+			src += '_'+size;
+		}
+
+		src += '.jpg';
+		
+		Asset.image(src);
+		
+		return src;
+	},
+	
+	initialize: function(response)
+	{
+		this.response = response;
+		
+		$('column_data').empty().setStyle('margin-left',window.innerWidth);
+		$('column_info').empty();
+		
+		this.createSource();
+		this.createInfoData();
+		this.createItemData();
+	},
+	
+	createSource: function()
+	{
+		linkItem = new Element('a',{href: this.response.url,text: 'teste'});
+		linkVia = new Element('a',{href: this.response.short_url,text: 'via (flickr.com)'});
+		PItem = new Element('p');
+		PVia = new Element('p');
+		
+		linkItem.inject(PItem);
+		linkVia.inject(PVia);
+		
+		this.addInfo('Source', [PItem,PVia]);
+	}
+});
+
+var FlickrHtmlPhoto = new Class({
+	Extends: FlickrHtmlDefault,
+	
+	createItemData: function()
+	{
+		var that = this;
+		html = new Array();
+		
+		html.include(new Element('img',{src: that.createImage()}));
+		
+		if (this.response.description != "")
+			html.include(new Element('p',{html: this.response.description}));
+		
+		this.addData(html);
+	},
+	
+	createInfoData: function()
+	{
+		this.createOwner();
+		this.createTakenDate();
+		this.createTags();
+		this.createSizes();
+	},
+	
+	createOwner: function()
+	{
+		html = new Array();
+		if (this.response.owner.username != "")
+			html.include(new Element('p',{text: this.response.owner.username}));
+		
+		if (this.response.owner.realname != "")
+			html.include(new Element('p',{text: '('+this.response.owner.realname+')'}));
+		
+		if (this.response.owner.location != "")
+			html.include(new Element('p',{text: this.response.owner.location}));
+		
+		this.addInfo('Owner', html);
+	},
+	
+	createTakenDate: function()
+	{
+		html = new Array();
+		if (this.response.owner.taken_date != "")
+			html.include(new Element('p',{text: this.response.taken_date}))
+			
+		this.addInfo('Taken date', html);
+	},
+	
+	createTags: function()
+	{
+		html = new Array();
+		
+		if ( this.response.tags.length > 0 )
+		{
+			this.response.tags.each(function(tag){
+				html.include(new Element('span',{text: tag}).addClass('tag'));
+			});
+		}
+			
+		this.addInfo('Tags', html);
+	},
+	
+	createSizes: function()
+	{
+		html = new Array();
+		
+		if ( this.response.sizes.length > 0 )
+		{
+			this.response.sizes.each(function(size){
+				html.include(new Element('p',{text: size.width+' x '+size.height}));
+			});
+		}
+			
+		this.addInfo('Sizes', html);
+	}
+});
+
+var FlickrHtmlPhotoset = new Class({
+	Extends: FlickrHtmlDefault,
+	
+	createInfoData: function()
+	{
+		this.createOwner();
+		this.createDescription();
+	},
+	
+	createItemData: function()
+	{
+		var that = this;
+		html = new Array();
+		
+		this.response.photos.each(function(photo){
+			alert(photo);
+			that.response.image = photo;
+			html.include(new Element('img',{src: that.createImage()}));
+			
+			if (that.response.description != "")
+				html.include(new Element('p',{html: that.response.description}));
+		});
+		
+		this.addData(html);
+	},
+	
+	createOwner: function()
+	{
+		html = new Array();
+		if (this.response.owner != "")
+			html.include(new Element('p',{text: this.response.owner}));
+		
+		this.addInfo('Owner', html);
+	},
+	
+	createDescription: function()
+	{
+		html = new Array();
+		if (this.response.description != "")
+			html.include(new Element('p',{html: this.response.description}))
+			
+		this.addInfo('Description', html);
+	}
+});
+
 
 window.addEvent('domready', function() {
 	new FlickrAnimation();
